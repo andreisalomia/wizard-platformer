@@ -5,7 +5,7 @@ os.chdir(current_dir)
 
 pygame.init()
 
-spawn_rate = 400
+spawn_rate = 300
 SPAWN_RATE_DECREAESE = 0.02
 DEFAULT_ANIMATION_SPEED = 0.2
 
@@ -261,7 +261,7 @@ class Game:
         player_sprite.rect.y = player_sprite.starting_y
         player_sprite.pos.x = player_sprite.starting_x
         player_sprite.pos.y = player_sprite.starting_y
-        spawn_rate = 400
+        spawn_rate = 300
 
         # Play the background music and stop the pause music
         pygame.mixer.music.play(-1, 0)
@@ -285,8 +285,8 @@ class Game:
                 )
                 monsters_group.add(monster)
         spawn_rate -= SPAWN_RATE_DECREAESE
-        if spawn_rate < 300:
-            spawn_rate = 300
+        if spawn_rate < 100:
+            spawn_rate = 100
 
 
 class Collectible(pygame.sprite.Sprite):
