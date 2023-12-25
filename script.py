@@ -16,6 +16,24 @@ LOW_SCORE = 10
 MID_SCORE = 20
 HIGH_SCORE = 30
 
+# Load game music and loop the background music
+pygame.mixer.music.load("Music/Action 2.wav")
+pygame.mixer.music.set_volume(0.25)
+pygame.mixer.music.play(-1, 0)
+# Load game sounds
+jump_sound = pygame.mixer.Sound("Sound Effects/jump_wizard.mp3")
+jump_sound.set_volume(0.1)
+fire_sound = pygame.mixer.Sound("Sound Effects/fire_wizard.wav")
+fire_sound.set_volume(0.5)
+player_hurt_sound = pygame.mixer.Sound("Sound Effects/auch_wizard.mp3")
+player_hurt_sound.set_volume(0.25)
+girl_hurt_sound = pygame.mixer.Sound("Sound Effects/girl_hurt.wav")
+girl_hurt_sound.set_volume(0.25)
+pause_music = pygame.mixer.Sound("Sound Effects/tavern_pause_game.mp3")
+pause_music.set_volume(0.15)
+coin_sound = pygame.mixer.Sound("Sound Effects/coin.mp3")
+coin_sound.set_volume(0.25)
+
 # Create a window
 WINDOW_HEIGHT = 864
 WINDOW_WIDTH = 1184
@@ -117,6 +135,7 @@ class Game:
         if pygame.sprite.spritecollide(
             player_sprite, monsters_group, False, pygame.sprite.collide_rect
         ):
+            player_hurt_sound.play()
             self.player_lives -= 1
             if self.player_lives == 0:
                 self.game_over("player_death")
@@ -135,10 +154,13 @@ class Game:
         for collectible in collided_collectibles:
             if collectible.type_of_collectible == 1:
                 self.player_score += LOW_SCORE
+                coin_sound.play()
             elif collectible.type_of_collectible == 2:
                 self.player_score += MID_SCORE
+                coin_sound.play()
             elif collectible.type_of_collectible == 3:
                 self.player_score += HIGH_SCORE
+                coin_sound.play()
 
         # Check if fire collides with a monster and if it does spawn a gem
         collided_monsters = pygame.sprite.groupcollide(
@@ -160,6 +182,7 @@ class Game:
             self.game_over("player_death")
         # Check collision of girl with monsters
         if pygame.sprite.groupcollide(girl_group, monsters_group, False, False):
+            girl_hurt_sound.play()
             self.game_over("girl_death")
 
     def pause_game(self):
@@ -177,6 +200,10 @@ class Game:
         screen.blit(pause_text, text_rect)
         pygame.display.update()
 
+        # Play the pause music and stop the background music
+        pygame.mixer.music.stop()
+        pause_music.play(-1, 0)
+
         paused = True
         while paused:
             for event in pygame.event.get():
@@ -186,7 +213,7 @@ class Game:
                     pygame.quit()
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
                     paused = False
-                self.restart_game()
+                    self.restart_game()
 
     def game_over(self, how_game_ended):
         end_text = self.font.render("Game Over", True, WHITE)
@@ -235,6 +262,10 @@ class Game:
         player_sprite.pos.x = player_sprite.starting_x
         player_sprite.pos.y = player_sprite.starting_y
         spawn_rate = 400
+
+        # Play the background music and stop the pause music
+        pygame.mixer.music.play(-1, 0)
+        pause_music.stop()
 
     def spawn_mechanisms(self):
         global spawn_rate
@@ -533,7 +564,7 @@ class Monster(pygame.sprite.Sprite):
             self.monster_run_sprite.append(
                 pygame.transform.scale(
                     pygame.image.load(
-                        f"Monsters/PNG/{monster_type}/{monster_type}_enemies_1_run_00{i}.png"
+                        f"Monsters/png/{monster_type}/{monster_type}_enemies_1_run_00{i}.png"
                     ),
                     (64, 64),
                 )
@@ -542,7 +573,7 @@ class Monster(pygame.sprite.Sprite):
             self.monster_run_sprite.append(
                 pygame.transform.scale(
                     pygame.image.load(
-                        f"Monsters/PNG/{monster_type}/{monster_type}_enemies_1_run_0{i}.png"
+                        f"Monsters/png/{monster_type}/{monster_type}_enemies_1_run_0{i}.png"
                     ),
                     (64, 64),
                 )
@@ -705,8 +736,10 @@ while running:
             running = False
         if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
             player_sprite.jump()
+            jump_sound.play()
         if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
             player_sprite.attack()
+            fire_sound.play()
 
     # Draw the player on the screen
     screen.blit(background_image, background_rect)
