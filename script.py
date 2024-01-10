@@ -1,12 +1,15 @@
 import pygame, os, random, json
 
+# Use right key to move right, left key to move left, up key to jump, and space key to shoot
+# The goal of the game is to protect the princess from the monsters
+
 current_dir = os.path.dirname(__file__)
 os.chdir(current_dir)
 
 pygame.init()
 
-spawn_rate = 300
-SPAWN_RATE_DECREAESE = 0.02
+spawn_rate = 500
+SPAWN_RATE_DECREAESE = 0.03
 DEFAULT_ANIMATION_SPEED = 0.2
 
 WHITE = (255, 255, 255)
@@ -269,9 +272,10 @@ class Game:
 
     def spawn_mechanisms(self):
         global spawn_rate
-        # Spawn a monster gradually every 10 seconds going up to 5 seconds and have a
+        # Spawn a monster gradually and have a
         # 12% percent chance of spawning a monster when another monster is spawned
         # have also a 20% chance of spawning a monster when another one dies
+        # If there's no monster on the screen and more than 1 second has passed since the last monster died then spawn a new one
         if pygame.time.get_ticks() % int(spawn_rate) == 0:
             monster = Monster(
                 random.choice(monster_spawn_locations),
@@ -284,9 +288,16 @@ class Game:
                     random.choice(["1", "3", "4", "5", "6", "7", "8", "10"]),
                 )
                 monsters_group.add(monster)
+        if pygame.time.get_ticks() % 100 == 0 and len(monsters_group) == 0:
+            monster = Monster(
+                random.choice(monster_spawn_locations),
+                random.choice(["1", "3", "4", "5", "6", "7", "8", "10"]),
+            )
+            monsters_group.add(monster)
+            
         spawn_rate -= SPAWN_RATE_DECREAESE
-        if spawn_rate < 100:
-            spawn_rate = 100
+        if spawn_rate < 300:
+            spawn_rate = 300
 
 
 class Collectible(pygame.sprite.Sprite):
@@ -727,13 +738,12 @@ with open("tilemap.json", "r") as file:
 
 create_tilemap()
 
-# Main game loop
-running = True
-while running:
-    # Did the user click the window close button?
+run = True
+while run == True:
+    # wait for close/jump/shoot
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            run = False
         if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
             player_sprite.jump()
             jump_sound.play()
@@ -741,39 +751,29 @@ while running:
             player_sprite.attack()
             fire_sound.play()
 
-    # Draw the player on the screen
     screen.blit(background_image, background_rect)
 
-    # Draw tiles
     all_tiles.draw(screen)
 
-    # Draw girl
     girl_group.update()
     girl_group.draw(screen)
 
-    # Draw player
     player_group.update()
     player_group.draw(screen)
 
-    # Draw fire
     fire_group.update()
     fire_group.draw(screen)
 
-    # Draw monsters
     monsters_group.update()
     monsters_group.draw(screen)
 
-    # Draw collectibles
     collectible_group.update()
     collectible_group.draw(screen)
 
-    # Update the game
     game.update()
     game.draw()
 
-    # Tick clock and update the screen
     pygame.display.update()
     clock.tick(FPS)
 
-# Exit game
 pygame.quit()
